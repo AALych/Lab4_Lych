@@ -15,7 +15,7 @@ max_rad = 50  # максимальный радиус мишени
 max_speed = 10  # максимум скорости шариков по модулю
 
 screen = pygame.display.set_mode((width, length))
-'''Константы цветов'''
+# Константы цветов
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
@@ -28,18 +28,33 @@ COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]  # цвета мишеней
 
 
 class Ball:
+    # Класс мишени шарик
     def __init__(self):
+        """
+        задаются обязательные параметры экземляра
+        self.rad - радиус шарика
+        self.cord - координаты центра
+        self.color - цвет шарика
+        self.speed - его скорость
+        """
         self.rad = randint(10, max_rad)
-        self.cord = [randint(self.rad, width - self.rad),
-                     randint(self.rad, length - self.rad)]
+        self.cord = [randint(2 * self.rad, width - 2 * self.rad),
+                     randint(2 * self.rad, length - 2 * self.rad)]
         self.color = choice(COLORS)
         self.speed = [randint(- max_speed, max_speed),
                       randint(- max_speed, max_speed)]
 
     def draw(self):
+        # функция рисования шарика
         circle(screen, self.color, self.cord, self.rad)
 
     def move(self):
+        """
+        Функция движения мишени
+        Параметры a и b задают смену направления скорости по оси абсцисс и по
+        оси ординат соответсвенно при столкновении со стенкой
+        """
+
         if 0 + self.rad < self.cord[0] + self.speed[0] < width - self.rad:
             a = 1
         else:
@@ -53,23 +68,41 @@ class Ball:
                      self.cord[1] + self.speed[1]]
 
     def hit(self, hit_cords):
+        """
+        Функция, решающая попали ли мы по мишени или нет
+        hit_cords - координаты щелчка мыши
+        dist - расстояние между центром мишени и щелчком
+        """
         dist = ((self.cord[0] - hit_cords[0]) ** 2 +
                 (self.cord[1] - hit_cords[1]) ** 2)
         if dist <= (self.rad ** 2):
+            """
+            Если по мишени попали, то рисуется новый шарик 
+            и увеличивается счет
+            """
             self.color = choice(COLORS)
             self.speed = [randint(-10, 10), randint(-10, 10)]
             self.rad = randint(10, max_rad)
+            self.cord = [randint(2 * self.rad, width - 2 * self.rad),
+                         randint(2 * self.rad, length - 2 * self.rad)]
             score.increase(1)
 
 
 class Counter:
+    # Класс счетчика очков
     def __init__(self):
+        # В начале счет равен 0
         self.count = 0
 
-    def increase(self, prize):
-        self.count += prize
+    def increase(self, points):
+        """
+        Функция, увеличивающая счет пи попадании
+        points - количество очков, начисляемое за попадание
+        """
+        self.count += points
 
     def draw(self):
+        # Функция рисования самого счетчика
         surface_counter = labelFont.render(str(self.count), False, WHITE)
         screen.blit(surface_counter, (0, 0))
 
@@ -77,12 +110,9 @@ class Counter:
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
-score = Counter()
-labelFont = pygame.font.SysFont('Comic Sans MS', 100)
-balls = [Ball() for i in range(10)]
-for ball in balls:
-    ball.draw()
-    ball.move()
+score = Counter()  # создание экземпляра счетчика
+labelFont = pygame.font.SysFont('Comic Sans MS', 100)  # задание шрифта счетчика
+balls = [Ball() for i in range(10)]  # создание объектов класса мишеней
 
 while not finished:
     clock.tick(FPS)
@@ -90,12 +120,16 @@ while not finished:
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            """
+            Для каждой мишени проверяется, попал ли игрок по ней
+            """
             for ball in balls:
                 ball.hit(event.pos)
+    # Циклы движения мишеней
     for ball in balls:
         ball.draw()
         ball.move()
-    score.draw()
+    score.draw()  # Рисование (обновление) счетчика
     pygame.display.update()
     screen.fill(BLACK)
 
